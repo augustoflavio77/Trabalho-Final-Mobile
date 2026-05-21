@@ -16,7 +16,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.OffsetMapping
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import com.example.trabalho_final_mobile.ui.viewmodel.AuthViewModel
 import kotlinx.coroutines.delay
@@ -119,9 +122,10 @@ fun RegisterScreen(
                 value = state.phone,
                 onValueChange = { viewModel.onRegisterPhoneChange(it) },
                 label = "Telefone",
-                placeholder = "(00) 00000-0000",
+                placeholder = "(00) 0 0000-0000",
                 leadingIcon = Icons.Outlined.Phone,
-                keyboardType = KeyboardType.Phone
+                keyboardType = KeyboardType.Phone,
+                visualTransformation = PhoneVisualTransformation()
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -167,5 +171,51 @@ fun RegisterScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
         }
+    }
+}
+
+class PhoneVisualTransformation : VisualTransformation {
+    override fun filter(text: AnnotatedString): androidx.compose.ui.text.input.TransformedText {
+        // (00) 0 0000-0000
+        val digits = text.text.filter { it.isDigit() }
+        val out = StringBuilder()
+        
+        for (i in digits.indices) {
+            when (i) {
+                0 -> out.append("(").append(digits[i])
+                2 -> out.append(") ").append(digits[i])
+                3 -> out.append(" ").append(digits[i])
+                7 -> out.append("-").append(digits[i])
+                else -> out.append(digits[i])
+            }
+        }
+        
+        val phoneNumberOffsetMapping = object : OffsetMapping {
+            override fun originalToTransformed(offset: Int): Int {
+                if (offset <= 0) return 0
+                if (offset <= 2) return offset + 1
+                if (offset <= 3) return offset + 3
+                if (offset <= 7) return offset + 4
+                if (offset <= 11) return offset + 5
+                return 16
+            }
+
+            override fun transformedToOriginal(offset: Int): Int {
+                if (offset <= 1) return 0
+                if (offset <= 3) return offset - 1
+                if (offset <= 4) return 2
+                if (offset <= 6) return offset - 3
+                if (offset <= 7) return 3
+                if (offset <= 11) return offset - 4
+                if (offset <= 12) return 7
+                if (offset <= 16) return offset - 5
+                return 11
+            }
+        }
+
+        return androidx.compose.ui.text.input.TransformedText(
+            AnnotatedString(out.toString()),
+            phoneNumberOffsetMapping
+        )
     }
 }

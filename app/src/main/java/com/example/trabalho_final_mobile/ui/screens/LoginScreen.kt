@@ -179,6 +179,7 @@ fun ModernTextField(
     readOnly: Boolean = false,
     onClick: (() -> Unit)? = null,
     trailingIcon: @Composable (() -> Unit)? = null,
+    visualTransformation: VisualTransformation = VisualTransformation.None,
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
@@ -245,10 +246,10 @@ fun ModernTextField(
                 trailingIcon != null -> trailingIcon
                 else -> null
             },
-            visualTransformation = if (isPassword && !isPasswordVisible)
-                PasswordVisualTransformation()
-            else
-                VisualTransformation.None,
+            visualTransformation = when {
+                isPassword && !isPasswordVisible -> PasswordVisualTransformation()
+                else -> visualTransformation
+            },
             keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
             shape = RoundedCornerShape(14.dp),
             colors = OutlinedTextFieldDefaults.colors(

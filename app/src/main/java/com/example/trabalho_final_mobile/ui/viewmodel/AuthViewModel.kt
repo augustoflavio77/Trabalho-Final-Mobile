@@ -104,7 +104,10 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun onRegisterPhoneChange(value: String) {
-        registerUiState = registerUiState.copy(phone = value, errorMessage = null)
+        val filtered = value.filter { it.isDigit() }
+        if (filtered.length <= 11) {
+            registerUiState = registerUiState.copy(phone = filtered, errorMessage = null)
+        }
     }
 
     fun onRegisterPasswordChange(value: String) {
